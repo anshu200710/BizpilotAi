@@ -20,6 +20,8 @@ export const verifyWebhook = (req, res) => {
 };
 
 export const receiveMessage = async (req, res) => {
+      console.log("📩 WEBHOOK HIT");
+  console.log(JSON.stringify(req.body, null, 2));
   try {
     const entry = req.body.entry?.[0];
     const change = entry?.changes?.[0];
@@ -48,6 +50,7 @@ export const receiveMessage = async (req, res) => {
 
     // 📲 Reply on WhatsApp
     await sendWhatsAppMessage(from, ai.reply);
+
 
     res.sendStatus(200);
   } catch (error) {
