@@ -61,8 +61,8 @@ export const receiveMessage = async (req, res) => {
   res.sendStatus(200); // 🔥 Respond immediately
 
   try {
-    console.log("📩 WEBHOOK HIT");
-    console.log(JSON.stringify(req.body, null, 2));
+    // console.log("📩 WEBHOOK HIT");
+    // console.log(JSON.stringify(req.body, null, 2));
 
     const entry = req.body.entry?.[0];
     const change = entry?.changes?.[0];

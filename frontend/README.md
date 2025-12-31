@@ -11,6 +11,52 @@ Currently, two official plugins are available:
 
 The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
 
-## Expanding the ESLint configuration
+## AI Smart Sales & Support Agent
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+This frontend implements the SaaS app UI for "AI Smart Sales & Support Agent for MSMEs".
+
+### Run locally
+
+- Install deps: `npm install`
+- Start dev server: `npm run dev`
+- Backend base API: configured with `VITE_API_URL` in `.env` (defaults to http://localhost:5000)
+
+### Tech stack
+
+- React (JSX)
+- Vite
+- Tailwind CSS
+- Recharts
+- Axios
+- React Context API (AuthContext & AppContext)
+- Lucide icons
+
+### Project Structure
+
+- `src/`
+  - `components/` (Sidebar, Topbar, Button, Modal, Badge, Loader, ProtectedRoute)
+  - `context/` (AuthContext.jsx, AppContext.jsx)
+  - `pages/` (Login, Register, Dashboard, Leads, Conversations, AIChat, Invoices, Analytics)
+  - `utils/` (axios.js)
+
+### Important behaviors
+
+- JWT stored in localStorage; auto-auth via token decode on refresh
+- Axios interceptor emits `app:logout` event on 401 which triggers logout
+- All data fetched directly from backend (no mock data)
+- Graceful API error handling (returns `{ ok: false, message }`)
+
+### Notes for Backend
+
+Required API routes:
+
+- `POST /api/auth/register`
+- `POST /api/auth/login`
+- `GET /api/leads`, `POST /api/leads`, `PUT /api/leads/:id`, `DELETE /api/leads/:id`
+- `GET /api/conversations/:leadId`
+- `POST /api/ai/reply`
+- `GET /api/invoices`, `POST /api/invoices`, `PUT /api/invoices/:id`, `DELETE /api/invoices/:id`
+- `GET /api/analytics` (optional)
+
+If you need help wiring additional fields or adjusting endpoints, I can update the frontend accordingly.
+
