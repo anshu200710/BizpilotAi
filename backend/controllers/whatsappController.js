@@ -4,49 +4,49 @@ import Lead from '../models/Lead.js'
 import Conversation from '../models/Conversation.js'
 import WhatsAppAccount from '../models/WhatsAppAccount.js'
 
-// export const verifyWebhook = async (req, res) => {
-//   const mode = req.query['hub.mode']
-//   const token = req.query['hub.verify_token']
-//   const challenge = req.query['hub.challenge']
-
-//   if (mode === 'subscribe') {
-//     // Look up account with this verify token (per-account verification)
-//     if (token) {
-//       const account = await WhatsAppAccount.findOne({ verifyToken: token })
-//       if (account) {
-//         console.log('✅ Webhook verified for account', account.phoneNumberId)
-//         return res.status(200).send(challenge)
-//       }
-//     }
-
-//     // Fallback to legacy behaviour
-//     if (token === process.env.VERIFY_TOKEN) {
-//       console.log('✅ Legacy webhook verified')
-//       return res.status(200).send(challenge)
-//     }
-//   }
-
-//   console.log('❌ Webhook verification failed')
-//   return res.sendStatus(403)
-// }
-
-export const verifyWebhook = (req, res) => {
+export const verifyWebhook = async (req, res) => {
   const mode = req.query['hub.mode']
   const token = req.query['hub.verify_token']
   const challenge = req.query['hub.challenge']
 
-  console.log('Webhook verify:', { mode, token, challenge })
+  if (mode === 'subscribe') {
+    // Look up account with this verify token (per-account verification)
+    if (token) {
+      const account = await WhatsAppAccount.findOne({ verifyToken: token })
+      if (account) {
+        console.log('✅ Webhook verified for account', account.phoneNumberId)
+        return res.status(200).send(challenge)
+      }
+    }
 
-  if (
-    mode === 'subscribe' &&
-    token === process.env.VERIFY_TOKEN
-  ) {
-    // MUST return plain text
-    return res.status(200).send(challenge)
+    // Fallback to legacy behaviour
+    if (token === process.env.VERIFY_TOKEN) {
+      console.log('✅ Legacy webhook verified')
+      return res.status(200).send(challenge)
+    }
   }
 
+  console.log('❌ Webhook verification failed')
   return res.sendStatus(403)
 }
+
+// export const verifyWebhook = (req, res) => {
+//   const mode = req.query['hub.mode']
+//   const token = req.query['hub.verify_token']
+//   const challenge = req.query['hub.challenge']
+
+//   console.log('Webhook verify:', { mode, token, challenge })
+
+//   if (
+//     mode === 'subscribe' &&
+//     token === process.env.VERIFY_TOKEN
+//   ) {
+//     // MUST return plain text
+//     return res.status(200).send(challenge)
+//   }
+
+//   return res.sendStatus(403)
+// }
 
 
 
