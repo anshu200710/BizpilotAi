@@ -11,7 +11,7 @@ export const generateAIReply = async (message, language = "English") => {
     const genAI = new GoogleGenerativeAI(apiKey);
 
     const model = genAI.getGenerativeModel({
-      model: "gemini-1.0-pro",
+      model: "gemini-2.5-flash",
     });
 
     const prompt = `
