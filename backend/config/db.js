@@ -19,7 +19,7 @@ if (!cached) cached = global.mongoose = { conn: null, promise: null }
 const connectDb = async () => {
   if (cached.conn) return cached.conn
 
-  if (!process.env.MONGODB_URI) {
+  if (!process.env.MONGO_URI) {
     throw new Error('MONGODB_URI missing')
   }
 
