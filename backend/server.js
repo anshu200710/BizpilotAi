@@ -56,6 +56,7 @@ import conversationRoutes from './routes/coversationRoutes.js'
 import whatsappRoutes from './routes/whatsappRoutes.js'
 
 const app = express()
+await connectDb()
 
 // 🔥 REQUIRED for Vercel / reverse proxy
 app.set('trust proxy', 1)
