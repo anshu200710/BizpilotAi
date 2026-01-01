@@ -21,17 +21,19 @@ export default function Conversations() {
 
   const sendMessage = async () => {
     if (!message.trim() || !selected) return
-    // append user message locally
-    const userMsg = { sender: 'user', text: message, createdAt: new Date().toISOString() }
-    // show immediately
-    // update conversations state optimistically
-    // The AppContext.postAiReply will append AI reply
-    setMessage('')
     const leadId = selected._id
-    // Append user message
-    // Direct mutation avoided; we'll call fetchConversations to refresh after AI reply
-    // Call AI endpoint to get reply; it will be appended by context
-    await postAiReply(leadId, message)
+    const userMsg = { sender: 'user', text: message, createdAt: new Date().toISOString() }
+
+    // optimistic update: append user's message locally
+    setConversations((p) => ({ ...p, [leadId]: [...(p[leadId] || []), userMsg] }))
+    setMessage('')
+
+    // call backend AI and append reply (postAiReply appends AI message)
+    const res = await postAiReply(leadId, message)
+    if (!res.ok) {
+      // show error and optionally mark message as failed
+      alert(res.message || 'Failed to send message')
+    }
   }
 
   const msgs = conversations[selected?._id] || []

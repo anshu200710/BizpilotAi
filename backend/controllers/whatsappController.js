@@ -1,91 +1,79 @@
-import { generateAIReply } from "../config/gemini.js";
-import { sendWhatsAppMessage } from "../services/whatsappService.js";
-import Lead from "../models/Lead.js";
-import Conversation from "../models/Conversation.js";
+import { generateAIReply } from '../config/gemini.js'
+import { sendWhatsAppMessage } from '../services/whatsappService.js'
+import Lead from '../models/Lead.js'
+import Conversation from '../models/Conversation.js'
+import WhatsAppAccount from '../models/WhatsAppAccount.js'
 
-export const verifyWebhook = (req, res) => {
-  const mode = req.query["hub.mode"];
-  const token = req.query["hub.verify_token"];
-  const challenge = req.query["hub.challenge"];
+export const verifyWebhook = async (req, res) => {
+  const mode = req.query['hub.mode']
+  const token = req.query['hub.verify_token']
+  const challenge = req.query['hub.challenge']
 
-  if (mode === "subscribe" && token === process.env.VERIFY_TOKEN) {
-    console.log("✅ Webhook verified");
-    return res.status(200).send(challenge);
+  if (mode === 'subscribe') {
+    // Look up account with this verify token (per-account verification)
+    if (token) {
+      const account = await WhatsAppAccount.findOne({ verifyToken: token })
+      if (account) {
+        console.log('✅ Webhook verified for account', account.phoneNumberId)
+        return res.status(200).send(challenge)
+      }
+    }
+
+    // Fallback to legacy behaviour
+    if (token === process.env.VERIFY_TOKEN) {
+      console.log('✅ Legacy webhook verified')
+      return res.status(200).send(challenge)
+    }
   }
 
-  console.log("❌ Webhook verification failed");
-  return res.sendStatus(403);
+  console.log('❌ Webhook verification failed')
+  return res.sendStatus(403)
+}
 
-};
-
-// export const receiveMessage = async (req, res) => {
-//       console.log("📩 WEBHOOK HIT");
-//   console.log(JSON.stringify(req.body, null, 2));
-//   try {
-//     const entry = req.body.entry?.[0];
-//     const change = entry?.changes?.[0];
-//     const value = change?.value;
-//     const messageData = value?.messages?.[0];
-
-//     if (!messageData || messageData.type !== "text") {
-//       return res.sendStatus(200);
-//     }
-
-//     const from = messageData.from; // customer phone
-//     const text = messageData.text.body;
-
-//     // 🔮 Call Gemini AI
-//     const ai = await generateAIReply(text, "English");
-
-//     // 📇 Save Lead
-//     const lead = await Lead.create({
-//       phone: from,
-//       product_interest: ai.intent,
-//     });
-
-//     // 💬 Save conversation
-//     await Conversation.create({ lead: lead._id, message: text, sender: "customer" });
-//     await Conversation.create({ lead: lead._id, message: ai.reply, sender: "ai" });
-
-//     // 📲 Reply on WhatsApp
-//     await sendWhatsAppMessage(from, ai.reply);
-
-
-//     res.sendStatus(200);
-//   } catch (error) {
-//     console.error("Webhook Error:", error.message);
-//     res.sendStatus(500);
-//   }
-// };
 export const receiveMessage = async (req, res) => {
-  res.sendStatus(200); // 🔥 Respond immediately
+  // Respond immediately to WhatsApp servers
+  res.sendStatus(200)
 
   try {
-    // console.log("📩 WEBHOOK HIT");
-    // console.log(JSON.stringify(req.body, null, 2));
+    const entry = req.body.entry?.[0]
+    const change = entry?.changes?.[0]
+    const value = change?.value
+    const messageData = value?.messages?.[0]
 
-    const entry = req.body.entry?.[0];
-    const change = entry?.changes?.[0];
-    const value = change?.value;
-    const messageData = value?.messages?.[0];
+    if (!messageData || messageData.type !== 'text') return
 
-    if (!messageData || messageData.type !== "text") return;
+    // Resolve which WhatsApp account this message belongs to
+    const phoneNumberId = value?.metadata?.phone_number_id || value?.metadata?.display_phone_number
+    const account = phoneNumberId ? await WhatsAppAccount.findOne({ phoneNumberId }) : null
 
-    const from = messageData.from;
-    const text = messageData.text.body;
+    if (!account) {
+      console.warn('Webhook: No WhatsAppAccount found for incoming phone_number_id', phoneNumberId)
+      return
+    }
 
-    const ai = await generateAIReply(text, "English");
+    const userId = account.user
+    const from = messageData.from
+    const text = messageData.text.body
 
-    const lead = await Lead.create({
-      phone: from,
-      product_interest: ai.intent,
-    });
+    // Find or create lead for this user
+    let lead = await Lead.findOne({ phone: from, owner: userId })
+    if (!lead) {
+      lead = await Lead.create({ phone: from, owner: userId, whatsappAccount: account._id })
+    }
 
-    await Conversation.create({ lead: lead._id, message: text, sender: "customer" });
-    await Conversation.create({ lead: lead._id, message: ai.reply, sender: "ai" });
+    // Save customer's message under conversation with user reference
+    await Conversation.create({ lead: lead._id, user: userId, message: text, sender: 'customer', metadata: { raw: messageData } })
 
-    await sendWhatsAppMessage(from, ai.reply);
+    // Call AI to generate reply
+    const ai = await generateAIReply(text, 'English')
+
+    // Save AI reply
+    await Conversation.create({ lead: lead._id, user: userId, message: ai.reply, sender: 'ai' })
+
+    // Send reply using account-specific credentials
+    await sendWhatsAppMessage({ to: from, text: ai.reply, phoneNumberId: account.phoneNumberId, encryptedAccessToken: account.encryptedAccessToken })
   } catch (error) {
-    console.error("Webhook Error:", error);
+    console.error('Webhook Error:', error)
   }
-};
+}
+

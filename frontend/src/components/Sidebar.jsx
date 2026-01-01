@@ -1,6 +1,6 @@
 import React from 'react'
 import { NavLink } from 'react-router-dom'
-import { Home, Users, MessageCircle, FileText, BarChart2, LogOut } from 'lucide-react'
+import { Home, Users, MessageCircle, MessageSquare, FileText, BarChart2, LogOut } from 'lucide-react'
 import { useContext } from 'react'
 import { AuthContext } from '../context/AuthContext'
 
@@ -10,6 +10,7 @@ const items = [
   { to: '/conversations', label: 'Conversations', icon: MessageCircle },
   { to: '/invoices', label: 'Invoices', icon: FileText },
   { to: '/analytics', label: 'Analytics', icon: BarChart2 },
+  { to: '/whatsapp', label: 'WhatsApp', icon: MessageSquare },
 ]
 
 export default function Sidebar() {

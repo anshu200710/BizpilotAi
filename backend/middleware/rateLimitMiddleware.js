@@ -5,3 +5,9 @@ export const aiRateLimiter = rateLimit({
   max: 100, // 100 requests per window
   message: "Too many requests, please try again later",
 });
+
+export const webhookLimiter = rateLimit({
+  windowMs: 60 * 1000, // 1 minute
+  max: 30, // limit each IP to 30 requests per windowMs
+  message: { message: 'Too many requests to webhook, please try again later.' },
+});

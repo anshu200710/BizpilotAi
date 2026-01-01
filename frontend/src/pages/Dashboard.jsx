@@ -4,7 +4,7 @@ import { LineChart, Line, AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveCont
 import Badge from '../components/Badge'
 
 export default function Dashboard() {
-  const { leads, invoices, analytics } = useContext(AppContext)
+  const { leads, invoices, analytics, whatsappAccounts } = useContext(AppContext)
 
   const totalLeads = leads.length
   const activeLeads = leads.filter((l) => l.status !== 'Converted' && l.status !== 'Lost').length
@@ -97,6 +97,21 @@ export default function Dashboard() {
             {invoices.length === 0 && <li className="text-sm text-gray-500">No invoices yet</li>}
           </ul>
         </div>
+      </div>
+
+      <div className="mt-6 card">
+        <h3 className="font-semibold mb-3">Connected WhatsApp Number</h3>
+        {whatsappAccounts.length === 0 ? (
+          <div className="text-sm text-gray-500">No WhatsApp account connected. Go to WhatsApp setup to add one.</div>
+        ) : (
+          <div className="flex items-center justify-between">
+            <div>
+              <div className="font-medium">{whatsappAccounts[0].displayPhoneNumber || whatsappAccounts[0].phoneNumberId}</div>
+              <div className="text-sm text-gray-500">verify token: <code className="bg-gray-100 px-1 rounded">{whatsappAccounts[0].verifyToken}</code></div>
+            </div>
+            <a href="/whatsapp" className="text-blue-600">Manage</a>
+          </div>
+        )}
       </div>
     </div>
   )

@@ -12,6 +12,8 @@ export const AppProvider = ({ children }) => {
   const [conversations, setConversations] = useState({}) // { leadId: [messages] }
   const [analytics, setAnalytics] = useState({})
   const [loading, setLoading] = useState(false)
+  const [whatsappAccounts, setWhatsappAccounts] = useState([])
+  const [toasts, setToasts] = useState([])
 
   // Fetch initial data when user logs in
   useEffect(() => {
@@ -19,12 +21,14 @@ export const AppProvider = ({ children }) => {
       fetchLeads()
       fetchInvoices()
       fetchAnalytics()
+      fetchWhatsappAccounts()
     } else {
       // reset state on logout
       setLeads([])
       setInvoices([])
       setConversations({})
       setAnalytics({})
+      setWhatsappAccounts([])
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user])
@@ -150,6 +154,58 @@ export const AppProvider = ({ children }) => {
     }
   }
 
+  /* WhatsApp Accounts */
+  const fetchWhatsappAccounts = async () => {
+    try {
+      const res = await API.get('/api/whatsapp/accounts')
+      setWhatsappAccounts(res.data)
+    } catch (err) {
+      console.warn('Could not fetch whatsapp accounts', err.message)
+    }
+  }
+
+  const createWhatsappAccount = async (payload) => {
+    try {
+      const data = { ...payload }
+      let url = '/api/whatsapp/accounts'
+      if (data._skipVerify) {
+        url += '?skipVerify=true'
+        delete data._skipVerify
+      }
+      const res = await API.post(url, data)
+      setWhatsappAccounts((p) => [res.data, ...p])
+      return { ok: true, data: res.data }
+    } catch (err) {
+      return { ok: false, message: err.response?.data?.message || err.message }
+    }
+  }
+
+  const deleteWhatsappAccount = async (id) => {
+    try {
+      await API.delete(`/api/whatsapp/accounts/${id}`)
+      setWhatsappAccounts((p) => p.filter((a) => a._id !== id && a.id !== id))
+      return { ok: true }
+    } catch (err) {
+      return { ok: false, message: err.response?.data?.message || err.message }
+    }
+  }
+
+  /* Toasts */
+const addToast = ({ type = 'info', message, duration = 3000 }) => {
+  const id = Date.now()
+
+  setToasts((prev) => [...prev, { id, type, message }])
+
+  // auto remove
+  setTimeout(() => {
+    removeToast(id)
+  }, duration)
+}
+
+const removeToast = (id) => {
+  setToasts((prev) => prev.filter((t) => t.id !== id))
+}
+
   return (
     <AppContext.Provider
       value={{
@@ -158,6 +214,7 @@ export const AppProvider = ({ children }) => {
         conversations,
         analytics,
         loading,
+        whatsappAccounts,
         fetchLeads,
         createLead,
         updateLead,
@@ -169,6 +226,10 @@ export const AppProvider = ({ children }) => {
         updateInvoice,
         deleteInvoice,
         fetchAnalytics,
+        fetchWhatsappAccounts,
+        createWhatsappAccount,
+        deleteWhatsappAccount,
+        addToast,
       }}
     >
       {children}
