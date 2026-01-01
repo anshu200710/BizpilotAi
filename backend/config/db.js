@@ -22,7 +22,7 @@ const connectDb = async () => {
 
   mongoose.set('strictQuery', true)
 
-  await mongoose.connect(process.env.MONGODB_URI, {
+  await mongoose.connect(process.env.MONGO_URI, {
     bufferCommands: false, // 🔥 CRITICAL
   })
 
