@@ -103,6 +103,8 @@ import Lead from '../models/Lead.js'
 import Conversation from '../models/Conversation.js'
 import WhatsAppAccount from '../models/WhatsAppAccount.js'
 
+import connectDb from '../config/db.js'
+
 /**
  * ======================================================
  * 1️⃣ Webhook Verification (GET) — STATIC, NO DB
@@ -137,47 +139,136 @@ export const verifyWebhook = (req, res) => {
  * - Always respond 200 immediately
  * - Then process async
  */
+// export const receiveMessage = async (req, res) => {
+//   // Respond immediately to WhatsApp servers
+//   res.sendStatus(200)
+
+//   try {
+//     console.log('📩 Incoming WhatsApp webhook:', JSON.stringify(req.body, null, 2))
+
+//     const entry = req.body.entry?.[0]
+//     const change = entry?.changes?.[0]
+//     const value = change?.value
+
+//     // Ignore non-message webhooks (status updates, etc.)
+//     if (!value?.messages?.length) return
+
+//     const message = value.messages[0]
+
+//     // Only text messages for now
+//     if (message.type !== 'text') return
+
+//     const from = message.from // customer phone
+//     const text = message.text.body
+//     const phoneNumberId = value.metadata?.phone_number_id
+
+//     if (!phoneNumberId) {
+//       console.warn('❌ Missing phone_number_id in webhook metadata')
+//       return
+//     }
+
+//     // Resolve WhatsApp account (MULTI-TENANT SAFE)
+//     const account = await WhatsAppAccount.findOne({ phoneNumberId })
+
+//     if (!account) {
+//       console.warn('❌ No WhatsAppAccount found for phoneNumberId:', phoneNumberId)
+//       return
+//     }
+
+//     const userId = account.user
+
+//     // Find or create lead
+//     let lead = await Lead.findOne({ phone: from, owner: userId })
+
+//     if (!lead) {
+//       lead = await Lead.create({
+//         phone: from,
+//         owner: userId,
+//         whatsappAccount: account._id,
+//       })
+//     }
+
+//     // Save customer message
+//     await Conversation.create({
+//       lead: lead._id,
+//       user: userId,
+//       message: text,
+//       sender: 'customer',
+//       metadata: { raw: message },
+//     })
+
+//     // Generate AI reply
+//     const ai = await generateAIReply(text, 'English')
+
+//     if (!ai?.reply) {
+//       console.warn('⚠️ AI returned empty reply')
+//       return
+//     }
+
+//     // Save AI reply
+//     await Conversation.create({
+//       lead: lead._id,
+//       user: userId,
+//       message: ai.reply,
+//       sender: 'ai',
+//     })
+
+//     // Send reply via WhatsApp Cloud API
+//     await sendWhatsAppMessage({
+//       to: from,
+//       text: ai.reply,
+//       phoneNumberId: account.phoneNumberId,
+//       encryptedAccessToken: account.encryptedAccessToken,
+//     })
+
+//     console.log('✅ Reply sent to', from)
+//   } catch (error) {
+//     console.error('🔥 WhatsApp webhook processing error:', error)
+//   }
+// }
+
+
+
 export const receiveMessage = async (req, res) => {
   // Respond immediately to WhatsApp servers
   res.sendStatus(200)
 
   try {
-    console.log('📩 Incoming WhatsApp webhook:', JSON.stringify(req.body, null, 2))
+    // 🔥 ENSURE DB CONNECTION (CRITICAL)
+    await connectDb()
+
+    console.log(
+      '📩 Incoming WhatsApp webhook:',
+      JSON.stringify(req.body, null, 2)
+    )
 
     const entry = req.body.entry?.[0]
     const change = entry?.changes?.[0]
     const value = change?.value
 
-    // Ignore non-message webhooks (status updates, etc.)
     if (!value?.messages?.length) return
 
     const message = value.messages[0]
-
-    // Only text messages for now
     if (message.type !== 'text') return
 
-    const from = message.from // customer phone
+    const from = message.from
     const text = message.text.body
     const phoneNumberId = value.metadata?.phone_number_id
 
     if (!phoneNumberId) {
-      console.warn('❌ Missing phone_number_id in webhook metadata')
+      console.warn('❌ Missing phone_number_id')
       return
     }
 
-    // Resolve WhatsApp account (MULTI-TENANT SAFE)
     const account = await WhatsAppAccount.findOne({ phoneNumberId })
-
     if (!account) {
-      console.warn('❌ No WhatsAppAccount found for phoneNumberId:', phoneNumberId)
+      console.warn('❌ No WhatsAppAccount found for', phoneNumberId)
       return
     }
 
     const userId = account.user
 
-    // Find or create lead
     let lead = await Lead.findOne({ phone: from, owner: userId })
-
     if (!lead) {
       lead = await Lead.create({
         phone: from,
@@ -186,7 +277,6 @@ export const receiveMessage = async (req, res) => {
       })
     }
 
-    // Save customer message
     await Conversation.create({
       lead: lead._id,
       user: userId,
@@ -195,15 +285,9 @@ export const receiveMessage = async (req, res) => {
       metadata: { raw: message },
     })
 
-    // Generate AI reply
     const ai = await generateAIReply(text, 'English')
+    if (!ai?.reply) return
 
-    if (!ai?.reply) {
-      console.warn('⚠️ AI returned empty reply')
-      return
-    }
-
-    // Save AI reply
     await Conversation.create({
       lead: lead._id,
       user: userId,
@@ -211,7 +295,6 @@ export const receiveMessage = async (req, res) => {
       sender: 'ai',
     })
 
-    // Send reply via WhatsApp Cloud API
     await sendWhatsAppMessage({
       to: from,
       text: ai.reply,
@@ -219,7 +302,7 @@ export const receiveMessage = async (req, res) => {
       encryptedAccessToken: account.encryptedAccessToken,
     })
 
-    console.log('✅ Reply sent to', from)
+    console.log('✅ WhatsApp reply sent to', from)
   } catch (error) {
     console.error('🔥 WhatsApp webhook processing error:', error)
   }
