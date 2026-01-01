@@ -4,31 +4,66 @@ import Lead from '../models/Lead.js'
 import Conversation from '../models/Conversation.js'
 import WhatsAppAccount from '../models/WhatsAppAccount.js'
 
-export const verifyWebhook = async (req, res) => {
-  const mode = req.query['hub.mode']
-  const token = req.query['hub.verify_token']
-  const challenge = req.query['hub.challenge']
+// export const verifyWebhook = async (req, res) => {
+//   const mode = req.query['hub.mode']
+//   const token = req.query['hub.verify_token']
+//   const challenge = req.query['hub.challenge']
 
-  if (mode === 'subscribe') {
-    // Look up account with this verify token (per-account verification)
-    if (token) {
-      const account = await WhatsAppAccount.findOne({ verifyToken: token })
-      if (account) {
-        console.log('✅ Webhook verified for account', account.phoneNumberId)
+//   if (mode === 'subscribe') {
+//     // Look up account with this verify token (per-account verification)
+//     if (token) {
+//       const account = await WhatsAppAccount.findOne({ verifyToken: token })
+//       if (account) {
+//         console.log('✅ Webhook verified for account', account.phoneNumberId)
+//         return res.status(200).send(challenge)
+//       }
+//     }
+
+//     // Fallback to legacy behaviour
+//     if (token === process.env.VERIFY_TOKEN) {
+//       console.log('✅ Legacy webhook verified')
+//       return res.status(200).send(challenge)
+//     }
+//   }
+
+//   console.log('❌ Webhook verification failed')
+//   return res.sendStatus(403)
+// }
+
+
+export const verifyWebhook = async (req, res) => {
+  try {
+    const mode = req.query['hub.mode']
+    const token = req.query['hub.verify_token']
+    const challenge = req.query['hub.challenge']
+
+    console.log('Webhook verify hit:', { mode, token, challenge })
+
+    if (mode === 'subscribe' && challenge) {
+      // 1️⃣ Per-account verify token (DB-based)
+      if (token) {
+        const account = await WhatsAppAccount.findOne({ verifyToken: token })
+        if (account) {
+          console.log('✅ Webhook verified for account', account.phoneNumberId)
+          return res.status(200).send(challenge) // MUST be plain text
+        }
+      }
+
+      // 2️⃣ Fallback global token
+      if (process.env.VERIFY_TOKEN && token === process.env.VERIFY_TOKEN) {
+        console.log('✅ Webhook verified using global VERIFY_TOKEN')
         return res.status(200).send(challenge)
       }
     }
 
-    // Fallback to legacy behaviour
-    if (token === process.env.VERIFY_TOKEN) {
-      console.log('✅ Legacy webhook verified')
-      return res.status(200).send(challenge)
-    }
+    console.warn('❌ Webhook verification failed')
+    return res.sendStatus(403)
+  } catch (err) {
+    console.error('🔥 Webhook verification error:', err)
+    return res.sendStatus(500)
   }
-
-  console.log('❌ Webhook verification failed')
-  return res.sendStatus(403)
 }
+
 
 export const receiveMessage = async (req, res) => {
   // Respond immediately to WhatsApp servers
