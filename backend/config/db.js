@@ -12,22 +12,37 @@
 
 // export default connectDb
 
-
 import mongoose from 'mongoose'
 
-let isConnected = false
+let cached = global.mongoose
+
+if (!cached) {
+  cached = global.mongoose = { conn: null, promise: null }
+}
 
 const connectDb = async () => {
-  if (isConnected) return
+  if (cached.conn) return cached.conn
 
-  mongoose.set('strictQuery', true)
+  if (!process.env.MONGODB_URI) {
+    throw new Error('❌ MONGODB_URI missing in environment')
+  }
 
-  await mongoose.connect(process.env.MONGO_URI, {
-    bufferCommands: false, // 🔥 CRITICAL
-  })
+  if (!cached.promise) {
+    mongoose.set('strictQuery', true)
 
-  isConnected = true
-  console.log('✅ MongoDB connected')
+    cached.promise = mongoose
+      .connect(process.env.MONGODB_URI, {
+        bufferCommands: false,
+      })
+      .then((mongoose) => {
+        console.log('✅ MongoDB connected')
+        return mongoose
+      })
+  }
+
+  cached.conn = await cached.promise
+  return cached.conn
 }
 
 export default connectDb
+
