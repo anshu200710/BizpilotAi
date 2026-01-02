@@ -1,4 +1,12 @@
+import dotenv from "dotenv";
+dotenv.config({ path: "./.env" });
+
 import { GoogleGenerativeAI } from "@google/generative-ai";
+
+
+
+console.log("🔑 GEMINI KEY VALUE:", process.env.GEMINI_API_KEY);
+console.log("🔑 GEMINI KEY LENGTH:", process.env.GEMINI_API_KEY?.length);
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
