@@ -3,7 +3,7 @@ dotenv.config();
 
 import express from 'express'
 import cors from 'cors'
-import connectDb from './config/db.js'
+// import connectDb from './config/db.js'
 import authRoutes from './routes/authRoutes.js'
 import aiRoutes from './routes/aiRoutes.js'
 import leadRoutes from './routes/leadRoutes.js'
