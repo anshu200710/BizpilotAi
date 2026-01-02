@@ -74,3 +74,53 @@ export const deleteAccount = async (req, res) => {
     res.status(500).json({ message: 'Internal server error' })
   }
 }
+
+
+export const updateAccountToken = async (req, res) => {
+  try {
+    const userId = req.user.id
+    const accountId = req.params.id
+    const { accessToken, skipVerify } = req.body
+
+    if (!accessToken) {
+      return res.status(400).json({ message: 'accessToken is required' })
+    }
+
+    const account = await WhatsAppAccount.findById(accountId)
+    if (!account) {
+      return res.status(404).json({ message: 'Account not found' })
+    }
+
+    if (account.user.toString() !== userId) {
+      return res.status(403).json({ message: 'Forbidden' })
+    }
+
+    // 🔐 Verify token with Meta (recommended)
+    if (!skipVerify) {
+      try {
+        await axios.get(
+          `https://graph.facebook.com/v18.0/${account.phoneNumberId}`,
+          {
+            params: {
+              fields: 'display_phone_number',
+              access_token: accessToken,
+            },
+          }
+        )
+      } catch (err) {
+        console.warn('Token verification failed', err.response?.data || err.message)
+        return res.status(400).json({ message: 'Invalid WhatsApp access token' })
+      }
+    }
+
+    // 🔒 Encrypt & replace token
+    account.encryptedAccessToken = encrypt(accessToken)
+    account.updatedAt = new Date()
+    await account.save()
+
+    res.json({ success: true, message: 'Access token updated successfully' })
+  } catch (error) {
+    console.error('updateAccountToken error', error)
+    res.status(500).json({ message: 'Internal server error' })
+  }
+}

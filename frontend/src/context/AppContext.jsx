@@ -190,6 +190,25 @@ export const AppProvider = ({ children }) => {
     }
   }
 
+  const updateWhatsappToken = async (id, accessToken, skipVerify = false) => {
+  try {
+    const res = await fetch(`/api/whatsapp/accounts/${id}/token`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({ accessToken, skipVerify }),
+    })
+
+    const data = await res.json()
+    return { ok: res.ok, ...data }
+  } catch (err) {
+    return { ok: false, message: 'Network error' }
+  }
+}
+
+
   /* Toasts */
 const addToast = ({ type = 'info', message, duration = 3000 }) => {
   const id = Date.now()
@@ -229,6 +248,7 @@ const removeToast = (id) => {
         fetchWhatsappAccounts,
         createWhatsappAccount,
         deleteWhatsappAccount,
+        updateWhatsappToken,
         addToast,
       }}
     >

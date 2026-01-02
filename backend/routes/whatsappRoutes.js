@@ -3,21 +3,27 @@ import {
   verifyWebhook,
   receiveMessage,
 } from '../controllers/whatsappController.js'
-import { createAccount, listAccounts, deleteAccount } from '../controllers/whatsappAccountController.js'
+import {
+  createAccount,
+  listAccounts,
+  deleteAccount,
+  updateAccountToken,
+} from '../controllers/whatsappAccountController.js'
 import authMiddleware from '../middleware/authMiddleware.js'
 import { webhookLimiter } from '../middleware/rateLimitMiddleware.js'
 
 const router = express.Router()
 
-// Meta webhook verification
+// Webhook
 router.get('/webhook', verifyWebhook)
-
-// Incoming WhatsApp messages (rate-limited)
 router.post('/webhook', webhookLimiter, receiveMessage)
 
-// Account management (protected)
+// Account management
 router.post('/accounts', authMiddleware, createAccount)
 router.get('/accounts', authMiddleware, listAccounts)
 router.delete('/accounts/:id', authMiddleware, deleteAccount)
 
-export default router;
+// 🔥 UPDATE TOKEN
+router.put('/accounts/:id/token', authMiddleware, updateAccountToken)
+
+export default router
