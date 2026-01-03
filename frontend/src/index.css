@@ -8,3 +8,41 @@ body { @apply bg-gray-50 text-gray-800 font-sans; }
 /* Utility classes for card */
 .card { @apply bg-white rounded-lg shadow p-4; }
 
+/* ============================
+   PDF SAFE STYLES (NO OKLCH)
+   ============================ */
+
+.invoice-pdf {
+  background-color: #ffffff !important;
+  color: #000000 !important;
+}
+
+.invoice-pdf * {
+  background-color: transparent !important;
+  color: #000000 !important;
+  border-color: #dddddd !important;
+}
+
+/* ===== PDF SAFE RESET ===== */
+.pdf-root, .pdf-root * {
+  all: initial !important;
+  box-sizing: border-box !important;
+  font-family: Arial, sans-serif !important;
+  color: #000 !important;
+}
+
+.pdf-root table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.pdf-root th, .pdf-root td {
+  border: 1px solid #ddd;
+  padding: 6px;
+  font-size: 12px;
+}
+
+.pdf-root h3 {
+  font-size: 16px;
+  margin-bottom: 8px;
+}
