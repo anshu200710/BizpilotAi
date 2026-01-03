@@ -38,7 +38,7 @@ export const AppProvider = ({ children }) => {
     setLoading(true)
     try {
       const res = await API.get('/api/leads')
-      console.log(res);
+      // console.log(res);
 
       setLeads(res.data)
     } catch (err) {
@@ -122,7 +122,7 @@ export const AppProvider = ({ children }) => {
   const fetchInvoices = async () => {
     try {
       const res = await API.get('/api/invoices')
-      console.log(res);
+      // console.log(res);
 
       setInvoices(res.data)
     } catch (err) {

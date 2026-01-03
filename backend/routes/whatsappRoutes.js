@@ -12,6 +12,7 @@ import {
 } from '../controllers/whatsappAccountController.js'
 import authMiddleware from '../middleware/authMiddleware.js'
 import { webhookLimiter } from '../middleware/rateLimitMiddleware.js'
+import BusinessProfile from '../models/BusinessProfile.js'
 
 const router = express.Router()
 
@@ -31,6 +32,12 @@ router.post(
   authMiddleware,
   sendTestTemplate
 )
+
+router.delete('/profile', authMiddleware, async (req, res) => {
+  await BusinessProfile.deleteOne({ user: req.user.id })
+  res.json({ ok: true })
+})
+
 
 
 export default router

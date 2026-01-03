@@ -2,6 +2,7 @@ import React, { useContext, useEffect, useState } from 'react'
 import { AppContext } from '../context/AppContext'
 import API from '../utils/axios'
 import Button from '../components/Button'
+import BusinessProfilePreview from '../components/BusinessProfilePreview'
 
 export default function BusinessProfile() {
   const { addToast } = useContext(AppContext)
@@ -18,6 +19,9 @@ export default function BusinessProfile() {
   })
 
   const [loading, setLoading] = useState(false)
+  const [aiInput, setAiInput] = useState({
+    businessType: '',
+  })
 
   // 🔹 Load business profile
   useEffect(() => {
@@ -87,43 +91,101 @@ export default function BusinessProfile() {
     }
   }
 
+
+  // ai generate text for business data
+  const generateWithAI = async () => {
+    setLoading(true)
+
+    try {
+      const res = await API.post('/api/ai/generate-business-profile', {
+        businessName: form.businessName,
+        businessType: aiInput.businessType,
+        location: form.location,
+        services: form.services,
+      })
+
+      setForm((prev) => ({
+        ...prev,
+        description: res.data.description || '',
+        services: res.data.services?.join(', ') || '',
+        products: res.data.products?.join(', ') || '',
+        workingHours: res.data.workingHours || '',
+        tone: res.data.tone || 'friendly',
+        extraInstructions: res.data.extraInstructions || '',
+      }))
+
+      addToast({
+        type: 'success',
+        message: 'AI generated business profile 🎉',
+      })
+    } catch (err) {
+      addToast({
+        type: 'error',
+        message: 'AI generation failed',
+      })
+    } finally {
+      setLoading(false)
+    }
+  }
+
+
+  // for delete profile
+  const deleteProfile = async () => {
+  if (!confirm('Delete business profile?')) return
+
+  try {
+    await API.delete('/api/whatsapp/profile')
+
+    setForm({
+      businessName: '',
+      description: '',
+      services: '',
+      products: '',
+      location: '',
+      workingHours: '',
+      tone: 'friendly',
+      extraInstructions: '',
+    })
+
+    addToast({
+      type: 'success',
+      message: 'Business profile deleted',
+    })
+  } catch {
+    addToast({
+      type: 'error',
+      message: 'Failed to delete profile',
+    })
+  }
+}
+
+
+
   return (
-    <div className="p-6 max-w-2xl">
-      <h2 className="text-xl font-semibold mb-4">
-        Business Profile (Chatbot Settings)
+  <div className="p-6 space-y-6">
+
+    {/* 🔹 AI GENERATION SECTION */}
+    <div className="bg-white border rounded-lg p-5">
+      <h2 className="text-lg font-semibold mb-3">
+        🤖 AI Business Setup
       </h2>
 
-      <form onSubmit={saveProfile} className="space-y-3">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
         <input
           name="businessName"
           placeholder="Business Name"
           value={form.businessName}
           onChange={handleChange}
-          className="w-full p-2 border rounded"
-        />
-
-        <textarea
-          name="description"
-          placeholder="Business Description"
-          value={form.description}
-          onChange={handleChange}
-          className="w-full p-2 border rounded"
+          className="p-2 border rounded"
         />
 
         <input
-          name="services"
-          placeholder="Services (comma separated)"
-          value={form.services}
-          onChange={handleChange}
-          className="w-full p-2 border rounded"
-        />
-
-        <input
-          name="products"
-          placeholder="Products (comma separated)"
-          value={form.products}
-          onChange={handleChange}
-          className="w-full p-2 border rounded"
+          placeholder="Business Type (Salon, Clinic, Restaurant...)"
+          value={aiInput.businessType}
+          onChange={(e) =>
+            setAiInput((p) => ({ ...p, businessType: e.target.value }))
+          }
+          className="p-2 border rounded"
         />
 
         <input
@@ -131,40 +193,97 @@ export default function BusinessProfile() {
           placeholder="Location"
           value={form.location}
           onChange={handleChange}
-          className="w-full p-2 border rounded"
+          className="p-2 border rounded"
         />
 
         <input
-          name="workingHours"
-          placeholder="Working Hours"
-          value={form.workingHours}
+          name="services"
+          placeholder="Services (comma separated)"
+          value={form.services}
           onChange={handleChange}
-          className="w-full p-2 border rounded"
+          className="p-2 border rounded"
         />
+      </div>
 
-        <select
-          name="tone"
-          value={form.tone}
-          onChange={handleChange}
-          className="w-full p-2 border rounded"
+      <div className="mt-4">
+        <Button
+          type="button"
+          onClick={generateWithAI}
+          disabled={loading}
         >
-          <option value="friendly">Friendly</option>
-          <option value="professional">Professional</option>
-          <option value="salesy">Sales focused</option>
-        </select>
-
-        <textarea
-          name="extraInstructions"
-          placeholder="Extra chatbot instructions (optional)"
-          value={form.extraInstructions}
-          onChange={handleChange}
-          className="w-full p-2 border rounded"
-        />
-
-        <Button type="submit" disabled={loading}>
-          {loading ? 'Saving...' : 'Save Profile'}
+          {loading ? 'Generating...' : '✨ Generate with AI'}
         </Button>
-      </form>
+      </div>
     </div>
-  )
+
+    {/* 🔹 MAIN CONTENT */}
+    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+      {/* LEFT: FORM */}
+      <div className="bg-white border rounded-lg p-5">
+        <h3 className="text-lg font-semibold mb-4">
+          ✏️ Edit Business Profile
+        </h3>
+
+        <form onSubmit={saveProfile} className="space-y-3">
+          <textarea
+            name="description"
+            placeholder="Business Description"
+            value={form.description}
+            onChange={handleChange}
+            className="w-full p-2 border rounded"
+          />
+
+          <input
+            name="products"
+            placeholder="Products (comma separated)"
+            value={form.products}
+            onChange={handleChange}
+            className="w-full p-2 border rounded"
+          />
+
+          <input
+            name="workingHours"
+            placeholder="Working Hours"
+            value={form.workingHours}
+            onChange={handleChange}
+            className="w-full p-2 border rounded"
+          />
+
+          <select
+            name="tone"
+            value={form.tone}
+            onChange={handleChange}
+            className="w-full p-2 border rounded"
+          >
+            <option value="friendly">Friendly</option>
+            <option value="professional">Professional</option>
+            <option value="salesy">Sales focused</option>
+          </select>
+
+          <textarea
+            name="extraInstructions"
+            placeholder="Extra chatbot instructions"
+            value={form.extraInstructions}
+            onChange={handleChange}
+            className="w-full p-2 border rounded"
+          />
+
+          <Button type="submit" disabled={loading}>
+            {loading ? 'Saving...' : '💾 Save Profile'}
+          </Button>
+        </form>
+      </div>
+
+      {/* RIGHT: PREVIEW */}
+      <div className="lg:sticky lg:top-6 h-fit">
+        <BusinessProfilePreview
+          profile={form}
+          onDelete={deleteProfile}
+        />
+      </div>
+
+    </div>
+  </div>
+)
 }
