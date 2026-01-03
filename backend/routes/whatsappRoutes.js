@@ -8,6 +8,7 @@ import {
   listAccounts,
   deleteAccount,
   updateAccountToken,
+  sendTestTemplate,
 } from '../controllers/whatsappAccountController.js'
 import authMiddleware from '../middleware/authMiddleware.js'
 import { webhookLimiter } from '../middleware/rateLimitMiddleware.js'
@@ -25,5 +26,11 @@ router.delete('/accounts/:id', authMiddleware, deleteAccount)
 
 // 🔥 UPDATE TOKEN
 router.put('/accounts/:id/token', authMiddleware, updateAccountToken)
+router.post(
+  '/accounts/test-message',
+  authMiddleware,
+  sendTestTemplate
+)
+
 
 export default router

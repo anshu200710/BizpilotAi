@@ -8,7 +8,9 @@ export default function WhatsAppSetup() {
     createWhatsappAccount,
     deleteWhatsappAccount,
     updateWhatsappToken,
+    fetchWhatsappAccounts,
     addToast,
+    sendTestMessage,
   } = useContext(AppContext)
 
   const [phoneNumberId, setPhoneNumberId] = useState('')
@@ -84,6 +86,9 @@ export default function WhatsAppSetup() {
       })
     }
   }
+
+
+
 
   return (
     <div className="p-6">
@@ -201,25 +206,47 @@ export default function WhatsAppSetup() {
                       )
                       if (!newToken) return
 
-                      const res = await updateWhatsappToken(a._id, newToken)
+                      const res = await updateWhatsappToken(a._id, newToken, true)
 
                       if (res.ok) {
                         addToast({
                           type: 'success',
                           message: 'Token updated successfully',
                         })
+
+                        await fetchWhatsappAccounts() // 🔥 refresh list
                       } else {
                         addToast({
                           type: 'error',
-                          message:
-                            res.message || 'Token update failed',
+                          message: res.message || 'Token update failed',
                         })
                       }
+
                     }}
                     className="text-sm text-green-600"
                   >
                     Update token
                   </button>
+
+                  {/* //For Testing Message */}
+                  <button
+                    onClick={async () => {
+                      const to = prompt('Enter WhatsApp number with country code')
+                      if (!to) return
+
+                      const res = await sendTestMessage(a._id, to)
+
+                      if (res.ok) {
+                        addToast({ type: 'success', message: 'Test message sent' })
+                      } else {
+                        addToast({ type: 'error', message: res.message })
+                      }
+                    }}
+                    className="text-sm text-purple-600"
+                  >
+                    Send test message
+                  </button>
+
 
                   <button
                     onClick={() => handleDelete(a._id)}

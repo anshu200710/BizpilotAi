@@ -207,43 +207,40 @@ export const AppProvider = ({ children }) => {
     }
   }
 
-  // const updateWhatsappToken = async (id, accessToken, skipVerify = false) => {
-  //   try {
-  //     const res = await fetch(`/api/whatsapp/accounts/${id}/token`, {
-  //       method: 'PUT',
-  //       headers: {
-  //         'Content-Type': 'application/json',
-  //         Authorization: `Bearer ${token}`,
-  //       },
-  //       body: JSON.stringify({ accessToken, skipVerify }),
-  //     })
 
-  //     const data = await res.json()
-  //     return { ok: res.ok, ...data }
-  //   } catch (err) {
-  //     return { ok: false, message: 'Network error' }
-  //   }
-  // }
 
-  const updateWhatsappToken = async (id, accessToken, skipVerify = false) => {
+ const updateWhatsappToken = async (id, accessToken, skipVerify = false) => {
   try {
-    const token = localStorage.getItem('token')
+    const res = await API.put(
+      `/api/whatsapp/accounts/${id}/token`,
+      { accessToken, skipVerify }
+    )
 
-    const res = await fetch(`/api/whatsapp/accounts/${id}/token`, {
-      method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify({ accessToken, skipVerify }),
-    })
-
-    const data = await res.json()
-    return { ok: res.ok, ...data }
+    return { ok: true, data: res.data }
   } catch (err) {
-    return { ok: false, message: 'Network error' }
+    return {
+      ok: false,
+      message: err.response?.data?.message || err.message,
+    }
   }
 }
+
+const sendTestMessage = async (accountId, to) => {
+  try {
+    const res = await API.post('/api/whatsapp/accounts/test-message', {
+      accountId,
+      to,
+    })
+    return { ok: true, data: res.data }
+  } catch (err) {
+    return {
+      ok: false,
+      message: err.response?.data?.message || err.message,
+    }
+  }
+}
+
+
 
 
 
@@ -288,6 +285,7 @@ export const AppProvider = ({ children }) => {
         deleteWhatsappAccount,
         updateWhatsappToken,
         setConversations,
+        sendTestMessage,
         addToast,
       }}
     >

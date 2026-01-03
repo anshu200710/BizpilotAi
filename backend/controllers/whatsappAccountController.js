@@ -1,5 +1,5 @@
 import WhatsAppAccount from '../models/WhatsAppAccount.js'
-import { encrypt } from '../services/crypto.js'
+import { encrypt,  decrypt } from '../services/crypto.js'
 import axios from 'axios'
 
 export const createAccount = async (req, res) => {
@@ -122,5 +122,50 @@ export const updateAccountToken = async (req, res) => {
   } catch (error) {
     console.error('updateAccountToken error', error)
     res.status(500).json({ message: 'Internal server error' })
+  }
+}
+
+
+export const sendTestTemplate = async (req, res) => {
+  try {
+    const userId = req.user.id
+    const { accountId, to } = req.body
+
+    if (!to) {
+      return res.status(400).json({ message: 'Recipient number is required' })
+    }
+
+    const account = await WhatsAppAccount.findById(accountId)
+    if (!account) return res.status(404).json({ message: 'Account not found' })
+    if (account.user.toString() !== userId)
+      return res.status(403).json({ message: 'Forbidden' })
+
+    const accessToken = decrypt(account.encryptedAccessToken)
+
+    const response = await axios.post(
+      `https://graph.facebook.com/v18.0/${account.phoneNumberId}/messages`,
+      {
+        messaging_product: 'whatsapp',
+        to,
+        type: 'template',
+        template: {
+          name: 'hello_world',
+          language: { code: 'en_US' },
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          'Content-Type': 'application/json',
+        },
+      }
+    )
+
+    res.json({ success: true, response: response.data })
+  } catch (err) {
+    console.error('Test message error:', err.response?.data || err.message)
+    res.status(400).json({
+      message: err.response?.data?.error?.message || 'Failed to send test message',
+    })
   }
 }
