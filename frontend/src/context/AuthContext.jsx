@@ -19,6 +19,8 @@ export const AuthProvider = ({ children }) => {
   const [token, setToken] = useState(localStorage.getItem('token'))
   const [loading, setLoading] = useState(true)
 
+
+
   useEffect(() => {
     // Auto-auth on app load
     const stored = localStorage.getItem('token')
@@ -74,6 +76,9 @@ export const AuthProvider = ({ children }) => {
     setToken(null)
     setUser(null)
   }
+
+  // console.log(user);
+  
 
   return (
     <AuthContext.Provider value={{ user, token, loading, login, register, logout }}>

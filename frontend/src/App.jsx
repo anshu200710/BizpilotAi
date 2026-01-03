@@ -36,7 +36,7 @@ export default function App() {
 
             <Route path="/leads" element={<ProtectedRoute><Leads /></ProtectedRoute>} />
             <Route path="/conversations" element={<ProtectedRoute><Conversations /></ProtectedRoute>} />
-            <Route path="/ai" element={<ProtectedRoute><AIChat /></ProtectedRoute>} />
+            {/* <Route path="/ai" element={<ProtectedRoute><AIChat /></ProtectedRoute>} /> */}
             <Route path="/invoices" element={<ProtectedRoute><Invoices /></ProtectedRoute>} />
             <Route path="/analytics" element={<ProtectedRoute><Analytics /></ProtectedRoute>} />
             <Route path="/whatsapp" element={<ProtectedRoute><WhatsAppSetup /></ProtectedRoute>} />

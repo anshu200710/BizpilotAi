@@ -39,7 +39,7 @@ export const AppProvider = ({ children }) => {
     try {
       const res = await API.get('/api/leads')
       console.log(res);
-      
+
       setLeads(res.data)
     } catch (err) {
       console.error('Failed to fetch leads', err)
@@ -82,8 +82,13 @@ export const AppProvider = ({ children }) => {
   const fetchConversations = async (leadId) => {
     try {
       const res = await API.get(`/api/conversations/${leadId}`)
-      
-      setConversations((p) => ({ ...p, [leadId]: res.data }))
+
+      // setConversations((p) => ({ ...p, [leadId]: res.data }))
+      setConversations((p) => ({
+        ...p,
+        [leadId]: res.data?.messages || []
+      }))
+
       return { ok: true, data: res.data }
     } catch (err) {
       return { ok: false, message: err.response?.data?.message || err.message }
@@ -94,7 +99,19 @@ export const AppProvider = ({ children }) => {
     try {
       const res = await API.post('/api/ai/reply', { leadId, message })
       // append AI message
-      setConversations((p) => ({ ...p, [leadId]: [...(p[leadId] || []), res.data] }))
+      // setConversations((p) => ({ ...p, [leadId]: [...(p[leadId] || []), res.data] }))
+      setConversations((p) => ({
+        ...p,
+        [leadId]: [
+          ...(p[leadId] || []),
+          {
+            role: "assistant",
+            text: res.data.text,
+            createdAt: new Date().toISOString()
+          }
+        ]
+      }))
+
       return { ok: true, data: res.data }
     } catch (err) {
       return { ok: false, message: err.response?.data?.message || err.message }
@@ -106,7 +123,7 @@ export const AppProvider = ({ children }) => {
     try {
       const res = await API.get('/api/invoices')
       console.log(res);
-      
+
       setInvoices(res.data)
     } catch (err) {
       console.error('failed to fetch invoices', err)
@@ -190,8 +207,28 @@ export const AppProvider = ({ children }) => {
     }
   }
 
+  // const updateWhatsappToken = async (id, accessToken, skipVerify = false) => {
+  //   try {
+  //     const res = await fetch(`/api/whatsapp/accounts/${id}/token`, {
+  //       method: 'PUT',
+  //       headers: {
+  //         'Content-Type': 'application/json',
+  //         Authorization: `Bearer ${token}`,
+  //       },
+  //       body: JSON.stringify({ accessToken, skipVerify }),
+  //     })
+
+  //     const data = await res.json()
+  //     return { ok: res.ok, ...data }
+  //   } catch (err) {
+  //     return { ok: false, message: 'Network error' }
+  //   }
+  // }
+
   const updateWhatsappToken = async (id, accessToken, skipVerify = false) => {
   try {
+    const token = localStorage.getItem('token')
+
     const res = await fetch(`/api/whatsapp/accounts/${id}/token`, {
       method: 'PUT',
       headers: {
@@ -209,21 +246,22 @@ export const AppProvider = ({ children }) => {
 }
 
 
+
   /* Toasts */
-const addToast = ({ type = 'info', message, duration = 3000 }) => {
-  const id = Date.now()
+  const addToast = ({ type = 'info', message, duration = 3000 }) => {
+    const id = Date.now()
 
-  setToasts((prev) => [...prev, { id, type, message }])
+    setToasts((prev) => [...prev, { id, type, message }])
 
-  // auto remove
-  setTimeout(() => {
-    removeToast(id)
-  }, duration)
-}
+    // auto remove
+    setTimeout(() => {
+      removeToast(id)
+    }, duration)
+  }
 
-const removeToast = (id) => {
-  setToasts((prev) => prev.filter((t) => t.id !== id))
-}
+  const removeToast = (id) => {
+    setToasts((prev) => prev.filter((t) => t.id !== id))
+  }
 
   return (
     <AppContext.Provider
@@ -249,6 +287,7 @@ const removeToast = (id) => {
         createWhatsappAccount,
         deleteWhatsappAccount,
         updateWhatsappToken,
+        setConversations,
         addToast,
       }}
     >

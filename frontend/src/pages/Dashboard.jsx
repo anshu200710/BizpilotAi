@@ -7,7 +7,7 @@ export default function Dashboard() {
   const { leads, invoices, analytics, whatsappAccounts } = useContext(AppContext)
 
   const totalLeads = leads.length
-  const activeLeads = leads.filter((l) => l.status !== 'Converted' && l.status !== 'Lost').length
+  const activeLeads = leads.filter((l) => l.status !== 'closed').length
   const totalRevenue = invoices.reduce((s, i) => s + (i.total || 0), 0)
   const pending = invoices.filter((i) => i.status !== 'Paid').length
 
@@ -73,7 +73,9 @@ export default function Dashboard() {
               <li key={l._id} className="flex items-center justify-between">
                 <div>
                   <div className="font-medium">{l.name}</div>
-                  <div className="text-sm text-gray-500">{l.email}</div>
+                  {/* <div className="text-sm text-gray-500">{l.email}</div> */}
+                  <div className="text-sm text-gray-500">{l.customerNumber}</div>
+
                 </div>
                 <Badge>{l.status}</Badge>
               </li>

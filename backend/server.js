@@ -14,6 +14,8 @@ import dbMiddleware from './middleware/dbMiddleware.js'
 import profileRoutes from './routes/profileRoutes.js'
 
 const app = express()
+
+app.set('etag', false)
 app.set('trust proxy', 1)
 app.use(dbMiddleware)
 // connectDb()

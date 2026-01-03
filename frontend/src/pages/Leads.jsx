@@ -12,13 +12,23 @@ export default function Leads() {
   const [showModal, setShowModal] = useState(false)
   const [showDelete, setShowDelete] = useState(null)
 
-  const filtered = useMemo(() => {
-    return leads.filter((l) => {
-      if (status && l.status !== status) return false
-      if (query && !`${l.name} ${l.email}`.toLowerCase().includes(query.toLowerCase())) return false
-      return true
-    })
-  }, [leads, query, status])
+const filtered = useMemo(() => {
+  return leads.filter((l) => {
+    if (status && l.status !== status) return false
+
+    if (
+      query &&
+      !`${l.name || ''} ${l.customerNumber || ''}`
+        .toLowerCase()
+        .includes(query.toLowerCase())
+    ) {
+      return false
+    }
+
+    return true
+  })
+}, [leads, query, status])
+
 
   const openEdit = (lead) => {
     setEditing(lead)
@@ -76,7 +86,8 @@ export default function Leads() {
             {filtered.map((l) => (
               <tr key={l._id} className="border-t">
                 <td className="p-2">{l.name}</td>
-                <td className="p-2">{l.email} <div className="text-xs text-gray-500">{l.phone}</div></td>
+                {/* <td className="p-2">{l.email} <div className="text-xs text-gray-500">{l.phone}</div></td> */}
+                <td className="p-2">{l.customerNumber}</td>
                 <td className="p-2"><Badge>{l.status}</Badge></td>
                 <td className="p-2">
                   <div className="flex gap-2">
@@ -127,21 +138,33 @@ function LeadForm({ lead, onSave, onCancel }) {
         <label className="text-sm">Name</label>
         <input required value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} className="w-full mt-1 p-2 border rounded" />
       </div>
-      <div>
+      {/* <div>
         <label className="text-sm">Email</label>
         <input required value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} className="w-full mt-1 p-2 border rounded" />
       </div>
       <div>
         <label className="text-sm">Phone</label>
         <input value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} className="w-full mt-1 p-2 border rounded" />
+      </div> */}
+      <div>
+        <label className="text-sm">Customer Number</label>
+        <input
+          required
+          value={form.customerNumber || ''}
+          onChange={(e) =>
+            setForm({ ...form, customerNumber: e.target.value })
+          }
+          className="w-full mt-1 p-2 border rounded"
+        />
       </div>
+
       <div>
         <label className="text-sm">Status</label>
         <select value={form.status} onChange={(e) => setForm({ ...form, status: e.target.value })} className="w-full mt-1 p-2 border rounded">
-          <option>New</option>
-          <option>Contacted</option>
-          <option>Converted</option>
-          <option>Lost</option>
+          <option value="new">New</option>
+          <option value="contacted">Contacted</option>
+          <option value="qualified">Qualified</option>
+          <option value="closed">Closed</option>
         </select>
       </div>
       <div className="flex gap-2">

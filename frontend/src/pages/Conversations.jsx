@@ -2,7 +2,7 @@ import React, { useContext, useEffect, useState } from 'react'
 import { AppContext } from '../context/AppContext'
 
 export default function Conversations() {
-  const { leads, fetchConversations, conversations, postAiReply } = useContext(AppContext)
+  const { leads, fetchConversations, conversations, setConversations, postAiReply } = useContext(AppContext)
   const [selected, setSelected] = useState(null)
   const [message, setMessage] = useState('')
   const [loading, setLoading] = useState(false)
@@ -22,10 +22,21 @@ export default function Conversations() {
   const sendMessage = async () => {
     if (!message.trim() || !selected) return
     const leadId = selected._id
-    const userMsg = { sender: 'user', text: message, createdAt: new Date().toISOString() }
+    // const userMsg = { sender: 'user', text: message, createdAt: new Date().toISOString() }
 
-    // optimistic update: append user's message locally
-    setConversations((p) => ({ ...p, [leadId]: [...(p[leadId] || []), userMsg] }))
+    // // optimistic update: append user's message locally
+    // setConversations((p) => ({ ...p, [leadId]: [...(p[leadId] || []), userMsg] }))
+    const userMsg = {
+  role: "user",
+  text: message,
+  createdAt: new Date().toISOString()
+}
+
+setConversations((p) => ({
+  ...p,
+  [leadId]: [...(p[leadId] || []), userMsg]
+}))
+
     setMessage('')
 
     // call backend AI and append reply (postAiReply appends AI message)
@@ -50,7 +61,9 @@ export default function Conversations() {
               className={`w-full text-left p-2 rounded ${selected?._id === l._id ? 'bg-gray-100' : 'hover:bg-gray-50'}`}
             >
               <div className="font-medium">{l.name}</div>
-              <div className="text-sm text-gray-500">{l.email}</div>
+              {/* <div className="text-sm text-gray-500">{l.email}</div> */}
+              <div className="text-sm text-gray-500">{l.customerNumber}</div>
+
             </button>
           ))}
         </div>
@@ -63,8 +76,8 @@ export default function Conversations() {
             <div className="flex-1 overflow-auto space-y-3 p-3">
               {loading && <div className="text-sm text-gray-500">Loading...</div>}
               {msgs.map((m, i) => (
-                <div key={i} className={`flex ${m.sender === 'ai' ? 'justify-start' : 'justify-end'}`}>
-                  <div className={`max-w-[70%] p-3 rounded ${m.sender === 'ai' ? 'bg-gray-100 text-gray-800' : 'bg-blue-600 text-white'}`}>
+                <div key={i} className={`flex ${m.role === 'assistant' ? 'justify-start' : 'justify-end'}`}>
+                  <div className={`max-w-[70%] p-3 rounded ${m.role === 'assistant' ? 'bg-gray-100 text-gray-800' : 'bg-blue-600 text-white'}`}>
                     <div className="text-sm">{m.text}</div>
                     <div className="text-xs text-gray-400 mt-1">{new Date(m.createdAt).toLocaleString()}</div>
                   </div>
