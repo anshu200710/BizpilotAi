@@ -11,6 +11,7 @@ import invoiceRoutes from './routes/invoiceRoutes.js'
 import conversationRoutes from './routes/coversationRoutes.js'
 import whatsappRoutes from "./routes/whatsappRoutes.js";
 import dbMiddleware from './middleware/dbMiddleware.js'
+import profileRoutes from './routes/profileRoutes.js'
 
 const app = express()
 app.set('trust proxy', 1)
@@ -28,6 +29,7 @@ app.use("/api/leads", leadRoutes);
 app.use("/api/invoices", invoiceRoutes);
 app.use("/api/conversations", conversationRoutes);
 app.use("/api/whatsapp", whatsappRoutes);
+app.use('/api/profile', profileRoutes);
 
 
 app.get("/", (req, res) => {

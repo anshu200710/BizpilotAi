@@ -12,6 +12,8 @@ import AIChat from './pages/AIChat'
 import Invoices from './pages/Invoices'
 import Analytics from './pages/Analytics'
 import WhatsAppSetup from './pages/WhatsAppSetup'
+import BusinessProfile from './pages/BusinessProfile'
+
 export default function App() {
   return (
     <div className="min-h-screen flex bg-gray-50">
@@ -38,6 +40,7 @@ export default function App() {
             <Route path="/invoices" element={<ProtectedRoute><Invoices /></ProtectedRoute>} />
             <Route path="/analytics" element={<ProtectedRoute><Analytics /></ProtectedRoute>} />
             <Route path="/whatsapp" element={<ProtectedRoute><WhatsAppSetup /></ProtectedRoute>} />
+            <Route path="/business-profile" element={<ProtectedRoute><BusinessProfile /></ProtectedRoute>} />
           </Routes>
         </div>
       </div>

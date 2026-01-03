@@ -11,6 +11,7 @@ const items = [
   { to: '/invoices', label: 'Invoices', icon: FileText },
   { to: '/analytics', label: 'Analytics', icon: BarChart2 },
   { to: '/whatsapp', label: 'WhatsApp', icon: MessageSquare },
+  { to: '/business-profile', label: 'Business Profile', icon: FileText },
 ]
 
 export default function Sidebar() {

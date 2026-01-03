@@ -1,6 +1,7 @@
 import WhatsAppAccount from "../models/WhatsAppAccount.js";
 import Conversation from "../models/Conversation.js";
 import Lead from "../models/Lead.js";
+import BusinessProfile from "../models/BusinessProfile.js";
 import { generateAIReply } from "../config/gemini.js";
 import { sendWhatsAppMessage } from "../services/whatsappService.js";
 
@@ -11,57 +12,100 @@ export const verifyWebhook = (req, res) => {
 };
 
 export const receiveMessage = async (req, res) => {
+  // ✅ ACK FIRST (Vercel safe)
   res.sendStatus(200);
 
-  const value = req.body.entry?.[0]?.changes?.[0]?.value;
-  const message = value?.messages?.[0];
-  if (!message || message.type !== "text") return;
+  try {
+    const value = req.body.entry?.[0]?.changes?.[0]?.value;
+    const message = value?.messages?.[0];
+    if (!message || message.type !== "text") return;
 
-  const phoneNumberId = value.metadata.phone_number_id;
-  const from = message.from;
-  const text = message.text.body;
+    const phoneNumberId = value.metadata.phone_number_id;
+    const from = message.from;
+    const text = message.text.body;
 
-  const account = await WhatsAppAccount.findOne({ phoneNumberId, isActive: true })
-    .populate("user");
+    const account = await WhatsAppAccount.findOne({
+      phoneNumberId,
+      isActive: true,
+    }).populate("user");
 
-  if (!account || !account.user.isActive) return;
+    if (!account || !account.user?.isActive) return;
 
-  let convo = await Conversation.findOne({
-    user: account.user._id,
-    customerNumber: from
-  });
+    // 🔹 Load Business Profile
+    const profile = await BusinessProfile.findOne({
+      user: account.user._id,
+    });
 
-  if (!convo) {
-    convo = await Conversation.create({
+    // 🔹 Build AI System Prompt from profile
+    const systemPrompt = `
+You are an AI chatbot for this business.
+
+Business Name: ${profile?.businessName || "Not provided"}
+Description: ${profile?.description || "Not provided"}
+
+Services:
+${profile?.services?.join(", ") || "Not provided"}
+
+Products:
+${profile?.products?.join(", ") || "Not provided"}
+
+Location: ${profile?.location || "Not provided"}
+Working Hours: ${profile?.workingHours || "Not provided"}
+
+Tone: ${profile?.tone || "friendly"}
+
+Instructions:
+${profile?.extraInstructions || "Be helpful and professional."}
+
+Rules:
+- Reply only based on the business information
+- Do NOT invent services or products
+- Be concise and WhatsApp-friendly
+`;
+
+    // 🔹 Conversation
+    let convo = await Conversation.findOne({
       user: account.user._id,
       customerNumber: from,
-      messages: []
     });
+
+    if (!convo) {
+      convo = await Conversation.create({
+        user: account.user._id,
+        customerNumber: from,
+        messages: [],
+      });
+    }
+
+    // 🔹 AI Reply
+    const ai = await generateAIReply(
+      systemPrompt,
+      convo.messages,
+      text
+    );
+
+    convo.messages.push(
+      { role: "user", text },
+      { role: "assistant", text: ai.reply }
+    );
+
+    await convo.save();
+
+    // 🔹 Lead update
+    await Lead.findOneAndUpdate(
+      { user: account.user._id, customerNumber: from },
+      { interest: ai.intent },
+      { upsert: true }
+    );
+
+    // 🔹 Send WhatsApp reply
+    await sendWhatsAppMessage({
+      to: from,
+      text: ai.reply,
+      phoneNumberId,
+      encryptedAccessToken: account.encryptedAccessToken,
+    });
+  } catch (err) {
+    console.error("receiveMessage error:", err);
   }
-
-  const ai = await generateAIReply(
-    account.user.aiSystemPrompt,
-    convo.messages,
-    text
-  );
-
-  convo.messages.push(
-    { role: "user", text },
-    { role: "assistant", text: ai.reply }
-  );
-
-  await convo.save();
-
-  await Lead.findOneAndUpdate(
-    { user: account.user._id, customerNumber: from },
-    { interest: ai.intent },
-    { upsert: true }
-  );
-
-  await sendWhatsAppMessage({
-    to: from,
-    text: ai.reply,
-    phoneNumberId,
-    encryptedAccessToken: account.encryptedAccessToken
-  });
 };
