@@ -19,7 +19,13 @@ export const register = async (req, res) => {
     { expiresIn: "7d" }
   );
 
-  res.json({ token, user });
+  const safeUser = {
+  _id: user._id,
+  name: user.name,
+  email: user.email,
+};
+
+  res.json({ token, user: safeUser });
 };
 
 export const login = async (req, res) => {
