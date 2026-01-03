@@ -12,6 +12,7 @@ import conversationRoutes from './routes/coversationRoutes.js'
 import whatsappRoutes from "./routes/whatsappRoutes.js";
 import dbMiddleware from './middleware/dbMiddleware.js'
 import profileRoutes from './routes/profileRoutes.js'
+import searchRoutes from './routes/searchRoutes.js'
 
 const app = express()
 
@@ -32,6 +33,7 @@ app.use("/api/invoices", invoiceRoutes);
 app.use("/api/conversations", conversationRoutes);
 app.use("/api/whatsapp", whatsappRoutes);
 app.use('/api/profile', profileRoutes);
+app.use('/api/search', searchRoutes);
 
 
 app.get("/", (req, res) => {

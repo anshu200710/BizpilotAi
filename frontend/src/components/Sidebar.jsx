@@ -21,6 +21,7 @@ const items = [
   { to: '/analytics', label: 'Analytics', icon: BarChart2 },
   { to: '/whatsapp', label: 'WhatsApp', icon: MessageSquare },
   { to: '/business-profile', label: 'Business Profile', icon: FileText },
+  { to: '/data-scraper', label: 'Data Scraper', icon: BarChart2 },
 ]
 
 export default function Sidebar() {

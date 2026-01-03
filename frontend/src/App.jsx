@@ -13,6 +13,7 @@ import Invoices from './pages/Invoices'
 import Analytics from './pages/Analytics'
 import WhatsAppSetup from './pages/WhatsAppSetup'
 import BusinessProfile from './pages/BusinessProfile'
+import DataScraper from './pages/DataScraper'
 
 export default function App() {
   return (
@@ -41,6 +42,7 @@ export default function App() {
             <Route path="/analytics" element={<ProtectedRoute><Analytics /></ProtectedRoute>} />
             <Route path="/whatsapp" element={<ProtectedRoute><WhatsAppSetup /></ProtectedRoute>} />
             <Route path="/business-profile" element={<ProtectedRoute><BusinessProfile /></ProtectedRoute>} />
+            <Route path="/data-scraper" element={<ProtectedRoute><DataScraper /></ProtectedRoute>} />
           </Routes>
         </div>
       </div>
