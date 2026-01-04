@@ -3,7 +3,8 @@ import {
   createLead,
   getLeads,
   updateLead,
-  deleteLead,
+  updateLeadStatus,
+  deleteLead
 } from "../controllers/leadController.js";
 import authMiddleware from "../middleware/authMiddleware.js";
 
@@ -13,5 +14,6 @@ router.post("/", authMiddleware, createLead);
 router.get("/", authMiddleware, getLeads);
 router.put("/:id", authMiddleware, updateLead);
 router.delete("/:id", authMiddleware, deleteLead);
+router.patch("/:id/status", authMiddleware, updateLeadStatus);
 
 export default router;

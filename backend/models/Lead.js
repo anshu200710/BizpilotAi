@@ -1,18 +1,60 @@
 import mongoose from "mongoose";
 
-const LeadSchema = new mongoose.Schema({
-  user: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
-  customerNumber: { type: String, required: true },
+const leadSchema = new mongoose.Schema(
+  {
+    userId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      required: true,
+      index: true
+    },
 
-  name: String,
-  interest: String,
+    // SOURCE
+    source: {
+      type: String,
+      enum: ["scraper", "whatsapp", "manual"],
+      required: true
+    },
 
-  status: {
-    type: String,
-    enum: ["new", "contacted", "qualified", "closed"],
-    default: "new"
-  }
+    // BASIC INFO
+    name: String,
+    phone: { type: String, index: true },
+    email: String,
+    address: String,
+    website: String,
 
-}, { timestamps: true });
+    // PIPELINE / CRM
+    status: {
+      type: String,
+      enum: ["new", "contacted", "in_progress", "paid", "unpaid", "completed"],
+      default: "new"
+    },
 
-export default mongoose.model("Lead", LeadSchema);
+    pipelineOrder: {
+      type: Number,
+      default: Date.now
+    },
+
+    // RATINGS (FROM SCRAPER)
+    rating: Number,
+    totalRatings: Number,
+
+    // WHATSAPP
+    whatsappAccountId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "WhatsappAccount"
+    },
+    lastMessage: String,
+
+    // DYNAMIC FIELDS
+    customFields: {
+      type: Map,
+      of: mongoose.Schema.Types.Mixed
+    },
+
+    notes: String
+  },
+  { timestamps: true }
+);
+
+export default mongoose.model("Lead", leadSchema);

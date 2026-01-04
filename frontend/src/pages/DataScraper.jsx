@@ -65,6 +65,26 @@ const DataScraper = () => {
   // refs to prevent race conditions
   const abortRef = useRef(null);
 
+
+  const convertToLead = async (r) => {
+    try {
+      await API.post("/api/leads", {
+        source: "scraper",
+        name: r.name,
+        phone: r.phone,
+        address: r.address,
+        website: r.website,
+        rating: r.rating,
+        totalRatings: r.total_ratings
+      });
+
+      showToast("Lead added to CRM", "success");
+    } catch (e) {
+      showToast("Failed to add lead", "error");
+    }
+  };
+
+
   // Add animation CSS once
   useEffect(() => {
     const css = `
@@ -268,11 +288,11 @@ const DataScraper = () => {
   // Helper to render rating stars
   const renderRating = (rating) => {
     if (rating === undefined || rating === null) return <span className="text-slate-400 text-xs">N/A</span>;
-    
+
     // Convert to number and validate
     const numRating = Number(rating);
     if (isNaN(numRating) || !isFinite(numRating)) return <span className="text-slate-400 text-xs">N/A</span>;
-    
+
     const fullStars = Math.max(0, Math.min(5, Math.floor(numRating))); // Ensure between 0-5
     const hasHalfStar = (numRating % 1 !== 0) && (fullStars < 5);
     const emptyStars = Math.max(0, 5 - fullStars - (hasHalfStar ? 1 : 0)); // Ensure non-negative
@@ -309,7 +329,7 @@ const DataScraper = () => {
     );
   };
 
-    // Helper: Validate website URL
+  // Helper: Validate website URL
   const isValidWebsite = (url) => {
     if (!url) return false;
 
@@ -478,8 +498,15 @@ const DataScraper = () => {
                         <span className="text-xs text-slate-500">Rating:</span>
                         {renderRating(r.rating)}
                       </div>
+                      <button
+                        onClick={() => convertToLead(r)}
+                        className="mt-3 w-full bg-indigo-600 text-white py-2 rounded"
+                      >
+                        Convert to Lead
+                      </button>
+
                     </div>
-                  ))}
+                  ))}<br />
                 </div>
 
                 {/* DESKTOP TABLE */}
@@ -493,6 +520,8 @@ const DataScraper = () => {
                         <th className="px-6 py-3 text-left text-xs font-bold text-slate-600">Website</th>
                         <th className="px-6 py-3 text-center text-xs font-bold text-slate-600">Rating</th>
                         <th className="px-6 py-3 text-center text-xs font-bold text-slate-600">Reviews</th>
+                        <th className="px-6 py-3 text-center text-xs font-bold text-slate-600">Action</th>
+
                       </tr>
                     </thead>
 
@@ -513,6 +542,15 @@ const DataScraper = () => {
                           </td>
                           <td className="px-6 py-4 text-center">{renderRating(r.rating)}</td>
                           <td className="px-6 py-4 text-center text-sm">{r.total_ratings ?? "-"}</td>
+                          <td className="px-6 py-4">
+                            <button
+                              onClick={() => convertToLead(r)}
+                              className="px-3 py-1 bg-indigo-600 text-white rounded text-xs"
+                            >
+                              Add Lead
+                            </button>
+                          </td>
+
                         </tr>
                       ))}
                     </tbody>
