@@ -2,6 +2,7 @@ import LeadDrawer from "./LeadDrawer";
 import { useState } from "react";
 import { Pencil, Trash } from "lucide-react";
 import { deleteLead } from "../../utils/leadService";
+import { updateLeadStatus } from "../../utils/leadService";
 
 export default function LeadsTable({ leads, reload }) {
     const [selected, setSelected] = useState(null);
