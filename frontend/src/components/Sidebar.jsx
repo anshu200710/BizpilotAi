@@ -1,4 +1,4 @@
-import React, { useContext } from 'react'
+import React, { useContext, useState } from 'react'
 import { NavLink } from 'react-router-dom'
 import {
   Home,
@@ -26,18 +26,24 @@ const items = [
 
 export default function Sidebar() {
   const { logout } = useContext(AuthContext)
-  const [open, setOpen] = React.useState(false)
+  const [open, setOpen] = useState(false)
 
   return (
     <>
-      {/* Mobile Top Bar */}
-      <div className="md:hidden flex p-4 items-start mt-4 border-b bg-white">
-        <button onClick={() => setOpen(true)}>
-          <Menu className="w-6 h-6" />
+      {/* MOBILE MENU BUTTON (under awning) */}
+      {/* MOBILE COUNTER MENU */}
+      <div className="md:hidden fixed bottom-4 right-4 z-40">
+        <button
+          onClick={() => setOpen(true)}
+          className="bg-red-600 text-white px-4 py-3 rounded-full shadow-lg"
+        >
+          Open Menu
         </button>
       </div>
 
-      {/* Mobile Overlay */}
+
+
+      {/* MOBILE OVERLAY */}
       {open && (
         <div
           className="fixed inset-0 bg-black/40 z-40 md:hidden"
@@ -45,13 +51,15 @@ export default function Sidebar() {
         />
       )}
 
-      {/* Sidebar */}
+      {/* SIDEBAR */}
       <aside
-        className={`fixed z-50 inset-y-0 left-0 w-64 bg-white border-r transform transition-transform
+        className={`fixed md:static z-50 inset-y-0 left-0 w-64 bg-white border-r
+        transform transition-transform duration-300 ease-in-out
         ${open ? 'translate-x-0' : '-translate-x-full'}
-        md:static md:translate-x-0 md:block`}
+        md:translate-x-0`}
       >
-        <div className="p-6 flex justify-between items-center">
+        {/* HEADER */}
+        <div className="p-6 border-b flex items-center justify-between">
           <div>
             <h1 className="text-xl font-semibold">AI Smart Sales</h1>
             <p className="text-sm text-gray-500">Sales & Support Agent</p>
@@ -62,7 +70,8 @@ export default function Sidebar() {
           </button>
         </div>
 
-        <nav className="p-4 space-y-1">
+        {/* MENU */}
+        <nav className="p-3 space-y-1">
           {items.map((it) => (
             <NavLink
               key={it.to}
@@ -70,21 +79,42 @@ export default function Sidebar() {
               end
               onClick={() => setOpen(false)}
               className={({ isActive }) =>
-                `flex items-center gap-3 px-3 py-2 rounded-md hover:bg-gray-50 ${
-                  isActive ? 'bg-gray-100 font-medium' : 'text-gray-700'
-                }`
+                `
+                group flex items-center gap-3 px-3 py-2 rounded-lg
+                transition-all duration-200
+                ${isActive
+                  ? 'bg-red-50 text-red-600 font-medium'
+                  : 'text-gray-700 hover:bg-gray-100'
+                }
+                `
               }
             >
-              <it.icon className="w-5 h-5" />
-              <span>{it.label}</span>
+              {/* ICON */}
+              <div
+                className={`
+                  p-2 rounded-md transition-colors
+                  ${({ isActive }) =>
+                    isActive
+                      ? 'bg-red-100 text-red-600'
+                      : 'bg-gray-100 group-hover:bg-gray-200'
+                  }
+                `}
+              >
+                <it.icon className="w-4 h-4" />
+              </div>
+
+              {/* LABEL */}
+              <span className="text-sm">{it.label}</span>
             </NavLink>
           ))}
         </nav>
 
-        <div className="absolute bottom-0 w-full p-4">
+        {/* LOGOUT */}
+        <div className="absolute bottom-0 w-full p-4 border-t">
           <button
-            className="w-full flex items-center gap-2 px-3 py-2 rounded-md hover:bg-red-50 text-red-600"
             onClick={logout}
+            className="w-full flex items-center gap-3 px-3 py-2 rounded-lg
+            text-red-600 hover:bg-red-50 transition"
           >
             <LogOut className="w-4 h-4" />
             Logout

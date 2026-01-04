@@ -25,19 +25,29 @@ export default function Leads() {
   }, [source]);
 
   return (
-    <div className="p-6 max-w-7xl mx-auto">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-bold">Leads</h1>
+    <div className="max-w-7xl mx-auto px-4 py-6">
 
-        {/* ✅ MANUAL CREATE BUTTON */}
+      {/* HEADER */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+        <div>
+          <h1 className="text-2xl font-semibold">Leads</h1>
+          <p className="text-sm text-gray-500">
+            Manage and track your customer leads
+          </p>
+        </div>
+
         <button
           onClick={() => setOpenCreate(true)}
-          className="bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm font-semibold"
+          className="inline-flex items-center justify-center
+          bg-indigo-600 hover:bg-indigo-700
+          text-white px-4 py-2 rounded-lg text-sm font-medium
+          transition shadow-sm"
         >
           + Add Lead
         </button>
       </div>
 
+      {/* FILTER / VIEW TABS */}
       <LeadsTabs
         source={source}
         setSource={setSource}
@@ -45,17 +55,20 @@ export default function Leads() {
         setView={setView}
       />
 
-      {loading ? (
-        <div className="mt-10 text-center text-gray-500">
-          Loading leads...
-        </div>
-      ) : view === "table" ? (
-        <LeadsTable leads={leads} reload={loadLeads} />
-      ) : (
-        <PipelineBoard leads={leads} reload={loadLeads} />
-      )}
+      {/* CONTENT */}
+      <div className="mt-6">
+        {loading ? (
+          <div className="py-20 text-center text-gray-500 animate-pulse">
+            Loading leads…
+          </div>
+        ) : view === "table" ? (
+          <LeadsTable leads={leads} reload={loadLeads} />
+        ) : (
+          <PipelineBoard leads={leads} reload={loadLeads} />
+        )}
+      </div>
 
-      {/* ✅ CREATE DRAWER */}
+      {/* CREATE DRAWER */}
       {openCreate && (
         <LeadDrawer
           lead={null}

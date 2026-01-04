@@ -46,3 +46,18 @@ body { @apply bg-gray-50 text-gray-800 font-sans; }
   font-size: 16px;
   margin-bottom: 8px;
 }
+
+@keyframes awningDrop {
+  from {
+    transform: translateY(-100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.animate-awningDrop {
+  animation: awningDrop 0.6s ease-out forwards;
+}

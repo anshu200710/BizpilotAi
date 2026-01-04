@@ -345,7 +345,7 @@ const DataScraper = () => {
 
 
   return (
-    <div className="min-h-screen bg-gray-50 p-4 md:p-50 pt-28 font-inter">
+    <div className="min-h-screen bg-gray-50 px-3 sm:px-4 md:px-6 pt-20 md:pt-24 font-inter overflow-x-hidden">
       <div className="max-w-6xl mx-auto">
         {/* Header */}
         <div className="text-center mb-12">
@@ -432,8 +432,11 @@ const DataScraper = () => {
         {/* Results modal */}
         {/* Results Modal */}
         {showResults && (
-          <div className="fixed inset-0 pt-28 z-40 flex items-center justify-center bg-black/40 backdrop-blur-sm p-0">
-            <div className=" w-screen h-screen bg-white shadow-2xl overflow-hidden animate-zoomIn">
+          <div className="fixed inset-0 z-40 bg-black/40 backdrop-blur-sm flex md:items-center md:justify-center">
+            <div className="bg-white w-full h-full
+  md:w-[90%] md:max-w-6xl md:h-[85vh]
+  rounded-none md:rounded-2xl
+  flex flex-col overflow-hidden animate-zoomIn">
 
               {/* Header */}
               <div className="flex flex-col md:flex-row items-start md:items-center justify-between p-4 md:p-6 border-b bg-linear-to-r from-indigo-50 to-white">
