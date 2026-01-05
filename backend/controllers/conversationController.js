@@ -13,7 +13,8 @@ export const getConversation = async (req, res) => {
 
     const conversation = await Conversation.findOne({
       user: req.user.id,
-      customerNumber: lead.customerNumber
+      // customerNumber: lead.customerNumber
+      customerNumber: lead.phone
     })
 
     res.json(conversation || { messages: [] })

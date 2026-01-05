@@ -64,18 +64,63 @@ Guidelines:
 
 // for ai reply to user Leads
 
+// export const aiReply = async (req, res) => {
+//   const { message } = req.body;
+
+//   const ai = await generateAIReply(message);
+
+//   const lead = await Lead.create({
+//     product_interest: ai.intent,
+//     owner: req.user.id
+//   });
+
+//   await Conversation.create({ lead: lead._id, message, sender: "customer" });
+//   await Conversation.create({ lead: lead._id, message: ai.reply, sender: "ai" });
+
+//   res.json(ai);
+// };
+
+
 export const aiReply = async (req, res) => {
-  const { message } = req.body;
+  try {
+    const { leadId, message } = req.body;
 
-  const ai = await generateAIReply(message);
+    const lead = await Lead.findOne({
+      _id: leadId,
+      userId: req.user._id
+    });
 
-  const lead = await Lead.create({
-    product_interest: ai.intent,
-    owner: req.user.id
-  });
+    if (!lead) {
+      return res.status(404).json({ message: "Lead not found" });
+    }
 
-  await Conversation.create({ lead: lead._id, message, sender: "customer" });
-  await Conversation.create({ lead: lead._id, message: ai.reply, sender: "ai" });
+    const convo =
+      (await Conversation.findOne({
+        user: req.user._id,
+        customerNumber: lead.phone
+      })) ||
+      (await Conversation.create({
+        user: req.user._id,
+        customerNumber: lead.phone,
+        messages: []
+      }));
 
-  res.json(ai);
+    const ai = await generateAIReply(
+      "Reply professionally and briefly.",
+      convo.messages,
+      message
+    );
+
+    convo.messages.push(
+      { role: "user", text: message },
+      { role: "assistant", text: ai.reply }
+    );
+
+    await convo.save();
+
+    res.json({ reply: ai.reply });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "AI reply failed" });
+  }
 };

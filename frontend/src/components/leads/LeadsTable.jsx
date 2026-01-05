@@ -3,15 +3,27 @@ import { useState } from "react";
 import { Pencil, Trash } from "lucide-react";
 import { deleteLead } from "../../utils/leadService";
 import { updateLeadStatus } from "../../utils/leadService";
+import ColdOutreachModal from "./ColdOutreachModal";
+
 
 export default function LeadsTable({ leads, reload }) {
     const [selected, setSelected] = useState(null);
+    const [selectedIds, setSelectedIds] = useState([]);
+    const [showColdModal, setShowColdModal] = useState(false);
+
 
 
     const handleDelete = async (id) => {
         if (!window.confirm("Delete this lead?")) return;
         await deleteLead(id);
         reload();
+    };
+
+
+    const toggle = (id) => {
+        setSelectedIds((p) =>
+            p.includes(id) ? p.filter(x => x !== id) : [...p, id]
+        );
     };
 
     return (
@@ -24,6 +36,7 @@ export default function LeadsTable({ leads, reload }) {
                         <th className="p-3">Source</th>
                         <th className="p-3">Status</th>
                         <th className="p-3">Actions</th>
+                        <th className="p-3">Select</th>
                     </tr>
                 </thead>
 
@@ -63,6 +76,14 @@ export default function LeadsTable({ leads, reload }) {
                                     <Trash size={16} />
                                 </button>
                             </td>
+                            <td className="p-3">
+                                <input
+                                    type="checkbox"
+                                    checked={selectedIds.includes(lead._id)}
+                                    onChange={() => toggle(lead._id)}
+                                />
+                            </td>
+
                         </tr>
                     ))}
                 </tbody>
@@ -74,6 +95,33 @@ export default function LeadsTable({ leads, reload }) {
                     reload={reload}
                 />
             )}
+
+            {selectedIds.length > 0 && (
+                <div className="flex items-center justify-between px-4 py-3 bg-indigo-50 border-b">
+                    <div className="text-sm font-semibold text-indigo-700">
+                        {selectedIds.length} lead(s) selected
+                    </div>
+
+                    <button
+                        onClick={() => setShowColdModal(true)}
+                        className="bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-indigo-700"
+                    >
+                        ✍ Write Cold Message
+                    </button>
+                </div>
+            )}
+
+            {showColdModal && (
+                <ColdOutreachModal
+                    leadIds={selectedIds}
+                    onClose={() => {
+                        setShowColdModal(false);
+                        setSelectedIds([]); // reset after sending
+                    }}
+                />
+            )}
+
+
         </div>
     );
 }

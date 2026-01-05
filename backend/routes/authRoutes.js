@@ -8,9 +8,12 @@ const router = express.Router();
 router.post("/register", register);
 router.post("/login", login);
 router.get("/me", protect, async (req, res) => {
-  const user = await User.findById(req.user.id).select("name email");
-  res.json(user);
-});
+  const user = await User.findById(req.user.id)
+    .select("name email role")
+
+  res.json({ user })
+})
+
 
 export default router;
       
