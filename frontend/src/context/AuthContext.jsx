@@ -9,7 +9,6 @@ export const AuthProvider = ({ children }) => {
   const [token, setToken] = useState(localStorage.getItem('token'))
   const [loading, setLoading] = useState(true)
 
-  // Load user on app start or token change
   useEffect(() => {
     const initAuth = async () => {
       if (!token) {
@@ -19,7 +18,7 @@ export const AuthProvider = ({ children }) => {
 
       try {
         const res = await API.get('/api/auth/me')
-        setUser(res.data) // { name, email }
+        setUser(res.data.user)
       } catch (err) {
         logout()
       } finally {
@@ -28,18 +27,22 @@ export const AuthProvider = ({ children }) => {
     }
 
     initAuth()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [token])
 
   const login = async (email, password) => {
     try {
       const res = await API.post('/api/auth/login', { email, password })
+
       localStorage.setItem('token', res.data.token)
       setToken(res.data.token)
-      setUser(res.data.user) // DIRECT USER OBJECT
+      setUser(res.data.user)
+
       return { ok: true }
     } catch (err) {
-      return { ok: false, message: err.response?.data?.message || err.message }
+      return {
+        ok: false,
+        message: err.response?.data?.message || err.message,
+      }
     }
   }
 
@@ -50,12 +53,17 @@ export const AuthProvider = ({ children }) => {
         email,
         password,
       })
+
       localStorage.setItem('token', res.data.token)
       setToken(res.data.token)
       setUser(res.data.user)
+
       return { ok: true }
     } catch (err) {
-      return { ok: false, message: err.response?.data?.message || err.message }
+      return {
+        ok: false,
+        message: err.response?.data?.message || err.message,
+      }
     }
   }
 
@@ -67,7 +75,15 @@ export const AuthProvider = ({ children }) => {
 
   return (
     <AuthContext.Provider
-      value={{ user, token, loading, login, register, logout, isAuthenticated: !!user }}
+      value={{
+        user,
+        token,
+        loading,
+        login,
+        register,
+        logout,
+        isAuthenticated: !!user,
+      }}
     >
       {children}
     </AuthContext.Provider>
