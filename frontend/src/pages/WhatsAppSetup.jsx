@@ -87,45 +87,64 @@ export default function WhatsAppSetup() {
     }
   }
 
-
-
-
   return (
-    <div className="p-6">
-      <h2 className="text-xl font-semibold mb-4">WhatsApp Setup</h2>
+    <div className="p-6 space-y-6 bg-gray-50">
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+      {/* Header */}
+      <div>
+        <h2 className="text-2xl font-semibold text-gray-800">
+          WhatsApp Setup
+        </h2>
+        <p className="text-sm text-gray-500">
+          Connect and manage WhatsApp Cloud API accounts
+        </p>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
         {/* ADD ACCOUNT */}
-        <div className="card">
-          <h3 className="font-semibold mb-3">Add WhatsApp Account</h3>
+        <div className="bg-white rounded-xl shadow-sm p-6">
+          <h3 className="font-semibold text-gray-800 mb-4">
+            Add WhatsApp Account
+          </h3>
 
-          <form onSubmit={submit} className="space-y-3">
+          <form onSubmit={submit} className="space-y-4">
+
             <div>
-              <label className="text-sm">Phone Number ID</label>
+              <label className="text-sm text-gray-600">
+                Phone Number ID
+              </label>
               <input
                 value={phoneNumberId}
                 onChange={(e) => setPhoneNumberId(e.target.value)}
-                className="w-full mt-1 p-2 border rounded"
+                className="w-full mt-1 px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-green-400"
+                placeholder="Ex: 123456789012345"
                 required
               />
             </div>
 
             <div>
-              <label className="text-sm">Access Token</label>
+              <label className="text-sm text-gray-600">
+                Access Token
+              </label>
               <input
                 value={accessToken}
                 onChange={(e) => setAccessToken(e.target.value)}
-                className="w-full mt-1 p-2 border rounded"
+                className="w-full mt-1 px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-green-400"
+                placeholder="Permanent or temporary token"
                 required
               />
             </div>
 
             <div>
-              <label className="text-sm">Verify Token (optional)</label>
+              <label className="text-sm text-gray-600">
+                Verify Token (optional)
+              </label>
               <input
                 value={verifyToken}
                 onChange={(e) => setVerifyToken(e.target.value)}
-                className="w-full mt-1 p-2 border rounded"
+                className="w-full mt-1 px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-green-400"
+                placeholder="Webhook verify token"
               />
             </div>
 
@@ -136,65 +155,69 @@ export default function WhatsAppSetup() {
                 checked={skipVerify}
                 onChange={(e) => setSkipVerify(e.target.checked)}
               />
-              <label htmlFor="skip" className="text-xs text-gray-500">
-                Skip verification (dev only)
+              <label
+                htmlFor="skip"
+                className="text-xs text-gray-500"
+              >
+                Skip verification (development only)
               </label>
             </div>
 
-            <div className="flex gap-2">
+            <div className="flex gap-3 pt-2">
               <Button type="submit" disabled={loading}>
-                {loading ? 'Adding...' : 'Add Account'}
+                {loading ? 'Adding…' : 'Add Account'}
               </Button>
 
               <button
                 type="button"
                 onClick={resetForm}
-                className="px-3 py-2 border rounded"
+                className="px-4 py-2 border rounded-md text-gray-600 hover:bg-gray-50"
               >
                 Reset
               </button>
             </div>
 
-            <p className="text-xs text-gray-500">
-              Copy the verify token and use it while setting webhook in Meta
+            <div className="text-xs text-gray-500 bg-gray-50 p-3 rounded">
+              Use the verify token while configuring webhook in Meta
               Developer Console.
-            </p>
+            </div>
           </form>
         </div>
 
         {/* CONNECTED ACCOUNTS */}
-        <div className="card">
-          <h3 className="font-semibold mb-3">Connected Accounts</h3>
+        <div className="bg-white rounded-xl shadow-sm p-6">
+          <h3 className="font-semibold text-gray-800 mb-4">
+            Connected Accounts
+          </h3>
 
           {whatsappAccounts.length === 0 && (
             <div className="text-sm text-gray-500">
-              No accounts connected
+              No WhatsApp accounts connected
             </div>
           )}
 
-          <div className="space-y-2">
+          <div className="space-y-3">
             {whatsappAccounts.map((a) => (
               <div
                 key={a._id}
-                className="border rounded p-2 flex justify-between items-center"
+                className="border rounded-lg p-4 flex flex-col gap-3"
               >
                 <div>
-                  <div className="font-medium">
+                  <div className="font-medium text-gray-800">
                     {a.displayPhoneNumber || a.phoneNumberId}
                   </div>
-                  <div className="text-xs text-gray-500">
-                    verify token:{' '}
-                    <code className="bg-gray-100 px-1 rounded">
+                  <div className="text-xs text-gray-500 mt-1">
+                    Verify token:{' '}
+                    <code className="bg-gray-100 px-2 py-0.5 rounded">
                       {a.verifyToken}
                     </code>
                   </div>
                 </div>
 
-                {/* ✅ ACTION BUTTONS (CORRECT SCOPE) */}
-                <div className="flex gap-3">
+                <div className="flex flex-wrap gap-4 text-sm">
                   <button
                     onClick={() => copyToken(a.verifyToken)}
-                    className="text-sm text-blue-600"
+                    className="text-blue-600 hover:underline"
                   >
                     Copy token
                   </button>
@@ -206,55 +229,64 @@ export default function WhatsAppSetup() {
                       )
                       if (!newToken) return
 
-                      const res = await updateWhatsappToken(a._id, newToken, true)
+                      const res = await updateWhatsappToken(
+                        a._id,
+                        newToken,
+                        true
+                      )
 
                       if (res.ok) {
                         addToast({
                           type: 'success',
                           message: 'Token updated successfully',
                         })
-
-                        await fetchWhatsappAccounts() // 🔥 refresh list
+                        await fetchWhatsappAccounts()
                       } else {
                         addToast({
                           type: 'error',
-                          message: res.message || 'Token update failed',
+                          message:
+                            res.message || 'Token update failed',
                         })
                       }
-
                     }}
-                    className="text-sm text-green-600"
+                    className="text-green-600 hover:underline"
                   >
                     Update token
                   </button>
 
-                  {/* //For Testing Message */}
                   <button
                     onClick={async () => {
-                      const to = prompt('Enter WhatsApp number with country code')
+                      const to = prompt(
+                        'Enter WhatsApp number with country code'
+                      )
                       if (!to) return
 
                       const res = await sendTestMessage(a._id, to)
 
                       if (res.ok) {
-                        addToast({ type: 'success', message: 'Test message sent' })
+                        addToast({
+                          type: 'success',
+                          message: 'Test message sent',
+                        })
                       } else {
-                        addToast({ type: 'error', message: res.message })
+                        addToast({
+                          type: 'error',
+                          message: res.message,
+                        })
                       }
                     }}
-                    className="text-sm text-purple-600"
+                    className="text-purple-600 hover:underline"
                   >
                     Send test message
                   </button>
 
-
                   <button
                     onClick={() => handleDelete(a._id)}
                     disabled={deletingId === a._id}
-                    className="text-sm text-red-600"
+                    className="text-red-600 hover:underline"
                   >
                     {deletingId === a._id
-                      ? 'Deleting...'
+                      ? 'Deleting…'
                       : 'Delete'}
                   </button>
                 </div>
